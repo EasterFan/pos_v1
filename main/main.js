@@ -162,19 +162,83 @@ function addDiscountType(completedItemSheet)
 function calculateThreePrice(completedItemSheet)
 {
   var calculatedThreePrice = new Array;
+  var smallPrice ;
+  var totalSave = 0;
+  var totalPrice = 0;
+  let i = 0;
 
   for (let completedItemSheetItem of completedItemSheet)
   {
     let count = parseFloat(completedItemSheetItem.count);
+    let price = parseFloat(completedItemSheetItem.price);
+
+    if (completedItemSheetItem.type == 'BUY_TWO_GET_ONE_FREE')
+    {
+      if(count > 2)
+      {
+        smallPrice = (count - 1) * price;
+      }
+
+      else {
+        smallPrice = count * price;
+      }
+    }else {
+      smallPrice = count * price;
+    }
+
+    calculatedThreePrice[i] = {
+      name:completedItemSheetItem.name,
+      count:completedItemSheetItem.count,
+      unit:completedItemSheetItem.unit,
+      price: completedItemSheetItem.price.toFixed(2),
+      smallPrice:smallPrice
+
+    };
+
+    totalSave += count * price;
+    totalPrice = totalPrice + smallPrice;
+    i++;
+
   }
 
+  calculatedThreePrice.totalPrice = totalPrice.toFixed(2);
+  calculatedThreePrice.save = totalSave - totalPrice.toFixed(2);
 
-
-
-
-  return
+  return calculatedThreePrice;
 
 }
+
+
+// 7.汇总的收据数组转为对象
+function turnArraytoObject(calculatedThreePrice)
+{
+  var singleItem = '';
+  for (let item of calculatedThreePrice) {
+    singleItem +=  '名称：' +item.name + '，数量：' + item.count + item.unit + '，单价：' +item.price + '(元)，小计：' + item.smallPrice.toFixed(2) + '(元)' + "\n"
+  }
+  let ItemSheetObj = {
+    singleItem: singleItem,
+    totalPrice: calculatedThreePrice.totalPrice,
+    save: calculatedThreePrice.save
+  };
+
+  return ItemSheetObj;
+}
+
+// 8.打印收据
+function printReceipt(ItemSheetObj)
+{
+  return `***<没钱赚商店>收据***
+${ItemSheetObj.singleItem}
+----------------------
+总计：${ItemSheetObj.totalPrice}(元)
+节省：${ItemSheetObj.save}(元)
+**********************`
+
+}
+
+
+
 var inputs = [
   'ITEM000001',
   'ITEM000001',
@@ -191,8 +255,14 @@ var barcode = buildBarcode(cuttedInputs);
 var calculatedBarcode = calculateBarcode(barcode, cuttedInputs);
 var completedItemSheet = buildCompletedItemSheet(calculatedBarcode);
 var addedDiscountType = addDiscountType(completedItemSheet);
+var calculatedThreePrice = calculateThreePrice(addedDiscountType);
+var ItemSheetObj = turnArraytoObject(calculatedThreePrice);
+var result = printReceipt(ItemSheetObj);
+
 //console.log(cuttedInputs);
 // console.log(barcode);
 // console.log(calculatedBarcode);
 // console.log(completedItemSheet);
-console.log(addedDiscountType);
+//console.log(addedDiscountType);
+//console.log(calculatedThreePrice);
+console.log(result);
